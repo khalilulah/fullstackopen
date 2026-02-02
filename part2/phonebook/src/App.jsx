@@ -1,16 +1,17 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import axios from "axios";
 import Filter from "./components/Filter";
 import Form from "./components/Form";
 import DisplayPerson from "./components/DisplayPerson";
 
 const App = () => {
-  const [persons, setPersons] = useState([
-    { name: "Arto Hellas", number: "070325409" },
-  ]);
+  // const [notes, setNotes] = useState([]);
+  const [persons, setPersons] = useState([]);
   const [newName, setNewName] = useState("");
   const [newNumber, setNewNumber] = useState("");
   const [findName, setFindName] = useState("");
 
+  //add person
   const addPerson = (e) => {
     e.preventDefault();
 
@@ -26,7 +27,11 @@ const App = () => {
       return;
     }
 
-    const newPerson = { name: newName, number: newNumber };
+    const newPerson = {
+      name: newName,
+      number: newNumber,
+      id: persons.length + 1,
+    };
 
     setPersons([...persons, newPerson]);
     setNewName(""); // clear input
@@ -38,9 +43,17 @@ const App = () => {
     setFindName(value);
   };
 
+  //fetch data
+  useEffect(() => {
+    axios.get("http://localhost:3001/persons").then((response) => {
+      setPersons(response.data);
+    });
+  }, []);
+
   const handleNameChange = (e) => setNewName(e.target.value);
   const handleNumberChange = (e) => setNewNumber(e.target.value);
 
+  //FILTER FUNCTION
   const personsToShow = findName
     ? persons.filter((person) =>
         person.name.toLowerCase().includes(findName.toLowerCase()),
@@ -61,6 +74,7 @@ const App = () => {
       />
 
       <h2>Numbers</h2>
+      {console.log(personsToShow)}
       <DisplayPerson personsToShow={personsToShow} />
     </div>
   );

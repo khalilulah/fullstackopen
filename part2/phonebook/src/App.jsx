@@ -3,6 +3,7 @@ import axios from "axios";
 import Filter from "./components/Filter";
 import Form from "./components/Form";
 import DisplayPerson from "./components/DisplayPerson";
+import phoneService from "./services/phones";
 
 const App = () => {
   // const [notes, setNotes] = useState([]);
@@ -14,11 +15,28 @@ const App = () => {
   //add person
   const addPerson = (e) => {
     e.preventDefault();
-
     const checkUser = persons.find((person) => person.name === newName);
 
     if (checkUser) {
-      alert("a user already exists");
+      if (window.confirm("Do you want change already user name?")) {
+        const updatedPerson = {
+          ...checkUser,
+          number: newNumber,
+        };
+
+        phoneService
+          .update(checkUser.id, updatedPerson)
+          .then((returnedNote) => {
+            setPersons(
+              persons.map((person) =>
+                person.name === checkUser.name ? returnedNote : person,
+              ),
+            );
+          });
+      } else {
+        console.log(`Glad you're staying!`);
+      }
+
       return;
     }
 
@@ -30,17 +48,30 @@ const App = () => {
     const newPerson = {
       name: newName,
       number: newNumber,
-      id: persons.length + 1,
     };
-
-    setPersons([...persons, newPerson]);
-    setNewName(""); // clear input
-    setNewNumber(""); // clear input
+    phoneService.create(newPerson).then((response) => {
+      console.log(response);
+      setPersons(persons.concat(response));
+      setNewName(""); // clear input
+      setNewNumber(""); // clear input
+    });
   };
 
   const findPerson = (e) => {
     const value = e.target.value;
     setFindName(value);
+  };
+
+  // delete number function
+  const deletePerson = (id) => {
+    if (window.confirm("Do you want to delete number")) {
+      phoneService.deleteNumber(id).then((response) => {
+        console.log(response);
+        setPersons(persons.filter((person) => person.id !== id));
+      });
+    } else {
+      console.log(`Glad you're staying!`);
+    }
   };
 
   //fetch data
@@ -75,7 +106,10 @@ const App = () => {
 
       <h2>Numbers</h2>
       {console.log(personsToShow)}
-      <DisplayPerson personsToShow={personsToShow} />
+      <DisplayPerson
+        personsToShow={personsToShow}
+        deletePerson={deletePerson}
+      />
     </div>
   );
 };

@@ -4,6 +4,8 @@ import Filter from "./components/Filter";
 import Form from "./components/Form";
 import DisplayPerson from "./components/DisplayPerson";
 import phoneService from "./services/phones";
+import AddUserNotification from "./components/AddUserNotification";
+import DeleteUserNotification from "./components/DeleteUserNotification";
 
 const App = () => {
   // const [notes, setNotes] = useState([]);
@@ -11,6 +13,15 @@ const App = () => {
   const [newName, setNewName] = useState("");
   const [newNumber, setNewNumber] = useState("");
   const [findName, setFindName] = useState("");
+  const [addMessage, setAddMessage] = useState(false);
+  const [errorMessage, setErrorMessage] = useState(null);
+
+  const theError = () => {
+    setAddMessage(true);
+    setTimeout(() => {
+      setAddMessage(false);
+    }, 2000);
+  };
 
   //add person
   const addPerson = (e) => {
@@ -18,7 +29,12 @@ const App = () => {
     const checkUser = persons.find((person) => person.name === newName);
 
     if (checkUser) {
-      if (window.confirm("Do you want change already user name?")) {
+      //pop up if user already exists
+      if (
+        window.confirm(
+          `${checkUser.name} is already added to phonebook, replace the old number with a new one?`,
+        )
+      ) {
         const updatedPerson = {
           ...checkUser,
           number: newNumber,
@@ -32,6 +48,15 @@ const App = () => {
                 person.name === checkUser.name ? returnedNote : person,
               ),
             );
+            theError();
+          })
+          .catch((error) => {
+            setErrorMessage(
+              `Note '${checkUser.name}' was already removed from server`,
+            );
+            setTimeout(() => {
+              setErrorMessage(null);
+            }, 2000);
           });
       } else {
         console.log(`Glad you're staying!`);
@@ -40,31 +65,35 @@ const App = () => {
       return;
     }
 
+    // if any of the form field is empty
     if (newName === "" || newNumber === "") {
       alert("fill all fields");
       return;
     }
 
+    //add person
     const newPerson = {
       name: newName,
       number: newNumber,
     };
     phoneService.create(newPerson).then((response) => {
-      console.log(response);
+      theError();
       setPersons(persons.concat(response));
       setNewName(""); // clear input
       setNewNumber(""); // clear input
     });
   };
 
+  //find person
   const findPerson = (e) => {
     const value = e.target.value;
     setFindName(value);
   };
 
   // delete number function
-  const deletePerson = (id) => {
-    if (window.confirm("Do you want to delete number")) {
+  const deletePerson = (person) => {
+    const { name, id } = person;
+    if (window.confirm(`Delete ${name}`)) {
       phoneService.deleteNumber(id).then((response) => {
         console.log(response);
         setPersons(persons.filter((person) => person.id !== id));
@@ -95,7 +124,6 @@ const App = () => {
     <div>
       <h2>Phonebook</h2>
       <Filter value={findName} onChange={findPerson} />
-
       <Form
         addPerson={addPerson}
         nameValue={newName}
@@ -103,6 +131,8 @@ const App = () => {
         numValue={newNumber}
         numberOnChange={handleNumberChange}
       />
+      {addMessage ? <AddUserNotification newName={newName} /> : null}
+      <DeleteUserNotification message={errorMessage} />
 
       <h2>Numbers</h2>
       {console.log(personsToShow)}

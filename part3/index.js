@@ -3,6 +3,7 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 var morgan = require("morgan");
 const app = express();
+app.use(express.static("dist"));
 dotenv.config();
 app.use(cors());
 app.use(express.json());

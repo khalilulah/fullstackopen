@@ -105,9 +105,11 @@ const App = () => {
 
   //fetch data
   useEffect(() => {
-    axios.get("http://localhost:3001/persons").then((response) => {
-      setPersons(response.data);
-    });
+    axios
+      .get("https://fullstackopen-t3ih.onrender.com/api/persons")
+      .then((response) => {
+        setPersons(response.data);
+      });
   }, []);
 
   const handleNameChange = (e) => setNewName(e.target.value);

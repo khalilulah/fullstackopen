@@ -1,7 +1,10 @@
 const express = require("express");
 const cors = require("cors");
+const mongoose = require("mongoose");
 const dotenv = require("dotenv");
+const Person = require("./models/person");
 var morgan = require("morgan");
+
 const app = express();
 app.use(express.static("dist"));
 dotenv.config();
@@ -36,6 +39,39 @@ let persons = [
   },
 ];
 
+// MONGODB SECTION
+
+// if (process.argv.length < 3) {
+//   console.log("give password as argument");
+//   process.exit(1);
+// }
+
+// const password = process.argv[2];
+// console.log(password);
+
+// const personName = process.argv[4];
+// const personNumber = process.argv[5];
+
+// const url = `mongodb+srv://alausakhalil:${password}@cluster0.7vvem.mongodb.net/?appName=Cluster0`;
+
+// mongoose.set("strictQuery", false);
+
+// mongoose.connect(url, { family: 4 });
+
+// const noteSchema = new mongoose.Schema({
+//   name: String,
+//   number: String,
+// });
+
+// noteSchema.set("toJSON", {
+//   transform: (document, returnedObject) => {
+//     returnedObject.id = returnedObject._id.toString();
+//     delete returnedObject._id;
+//     delete returnedObject.__v;
+//   },
+// });
+// const Person = mongoose.model("Person", noteSchema);
+
 app.get("/info", (request, response) => {
   const date = new Date().toString();
   response.send(`<p>phonebook has info for ${persons.length} people</p>
@@ -62,7 +98,12 @@ app.delete("/api/persons/:id", (request, response) => {
 
 //get all persons in phonebook
 app.get("/api/persons", (request, response) => {
-  response.json(persons);
+  Person.find({}).then((result) => {
+    console.log(result);
+    response.json(result);
+
+    mongoose.connection.close();
+  });
 });
 
 //create a new phonebook

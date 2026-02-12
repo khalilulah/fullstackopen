@@ -16,28 +16,28 @@ app.use(
   morgan(":method :url :status :res[content-length] - :response-time ms :body"),
 );
 
-let persons = [
-  {
-    id: "1",
-    name: "Arto Hellas",
-    number: "040-123456",
-  },
-  {
-    id: "2",
-    name: "Ada Lovelace",
-    number: "39-44-5323523",
-  },
-  {
-    id: "3",
-    name: "Dan Abramov",
-    number: "12-43-234345",
-  },
-  {
-    id: "4",
-    name: "Mary Poppendieck",
-    number: "39-23-6423122",
-  },
-];
+// let persons = [
+//   {
+//     id: "1",
+//     name: "Arto Hellas",
+//     number: "040-123456",
+//   },
+//   {
+//     id: "2",
+//     name: "Ada Lovelace",
+//     number: "39-44-5323523",
+//   },
+//   {
+//     id: "3",
+//     name: "Dan Abramov",
+//     number: "12-43-234345",
+//   },
+//   {
+//     id: "4",
+//     name: "Mary Poppendieck",
+//     number: "39-23-6423122",
+//   },
+// ];
 
 // MONGODB SECTION
 
@@ -79,13 +79,9 @@ app.get("/info", (request, response) => {
 });
 
 app.get("/api/persons/:id", (request, response) => {
-  const id = request.params.id;
-  const person = persons.find((person) => person.id === id);
-  if (person) {
-    response.json(person);
-  } else {
-    response.status(404).end();
-  }
+  Person.findById(request.params.id).then((note) => {
+    response.json(note);
+  });
 });
 
 //delete a person from phonebooonk
@@ -108,35 +104,48 @@ app.get("/api/persons", (request, response) => {
 
 //create a new phonebook
 app.post("/api/persons", (request, response) => {
-  const generateId = Math.floor(Math.random() * 1002829);
-  body = request.body;
-
-  const existingName = persons.find(
-    (person) => person.name.toLowerCase() === body.name.toLowerCase(),
-  );
-  console.log(existingName);
-
-  if (existingName) {
-    return response.status(400).json({
-      error: "name must be unique",
-    });
-  }
+  // const generateId = Math.floor(Math.random() * 1002829);
+  const body = request.body;
 
   if (!body.name || !body.number) {
-    return response.status(400).json({
-      error: "fill all fields",
-    });
+    return response.status(400).json({ error: "content missing" });
   }
 
-  const person = {
-    id: generateId,
+  const person = new Person({
     name: body.name,
     number: body.number,
-  };
-  persons.push(person);
-  console.log(person);
+  });
 
-  response.json(person);
+  person.save().then((savedPerson) => {
+    response.json(savedPerson);
+  });
+
+  // const existingName = persons.find(
+  //   (person) => person.name.toLowerCase() === body.name.toLowerCase(),
+  // );
+  // console.log(existingName);
+
+  // if (existingName) {
+  //   return response.status(400).json({
+  //     error: "name must be unique",
+  //   });
+  // }
+
+  // if (!body.name || !body.number) {
+  //   return response.status(400).json({
+  //     error: "fill all fields",
+  //   });
+  // }
+
+  // const person = {
+  //   id: generateId,
+  //   name: body.name,
+  //   number: body.number,
+  // };
+  // persons.push(person);
+  // console.log(person);
+
+  // response.json(person);
 });
 
 const PORT = process.env.PORT || 3001;

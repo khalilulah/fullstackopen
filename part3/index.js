@@ -7,9 +7,9 @@ const errorHandler = require("./errorHandler");
 var morgan = require("morgan");
 
 const app = express();
+app.use(cors());
 app.use(express.static("dist"));
 dotenv.config();
-app.use(cors());
 app.use(express.json());
 
 morgan.token("body", (req) => JSON.stringify(req.body));
@@ -106,13 +106,11 @@ app.get("/api/persons", (request, response) => {
   Person.find({}).then((result) => {
     console.log(result);
     response.json(result);
-
-    mongoose.connection.close();
   });
 });
 
 //create a new phonebook
-app.post("/api/persons", (request, response) => {
+app.post("/api/persons", (request, response, next) => {
   // const generateId = Math.floor(Math.random() * 1002829);
   const body = request.body;
 
@@ -125,36 +123,12 @@ app.post("/api/persons", (request, response) => {
     number: body.number,
   });
 
-  person.save().then((savedPerson) => {
-    response.json(savedPerson);
-  });
-
-  // const existingName = persons.find(
-  //   (person) => person.name.toLowerCase() === body.name.toLowerCase(),
-  // );
-  // console.log(existingName);
-
-  // if (existingName) {
-  //   return response.status(400).json({
-  //     error: "name must be unique",
-  //   });
-  // }
-
-  // if (!body.name || !body.number) {
-  //   return response.status(400).json({
-  //     error: "fill all fields",
-  //   });
-  // }
-
-  // const person = {
-  //   id: generateId,
-  //   name: body.name,
-  //   number: body.number,
-  // };
-  // persons.push(person);
-  // console.log(person);
-
-  // response.json(person);
+  person
+    .save()
+    .then((savedPerson) => {
+      response.json(savedPerson);
+    })
+    .catch((error) => next(error));
 });
 
 //update user's number

@@ -51,9 +51,7 @@ const App = () => {
             theError();
           })
           .catch((error) => {
-            setErrorMessage(
-              `Note '${checkUser.name}' was already removed from server`,
-            );
+            setErrorMessage(error.response.data.error);
             setTimeout(() => {
               setErrorMessage(null);
             }, 2000);
@@ -76,12 +74,21 @@ const App = () => {
       name: newName,
       number: newNumber,
     };
-    phoneService.create(newPerson).then((response) => {
-      theError();
-      setPersons(persons.concat(response));
-      setNewName(""); // clear input
-      setNewNumber(""); // clear input
-    });
+    phoneService
+      .create(newPerson)
+      .then((response) => {
+        theError();
+        setPersons(persons.concat(response));
+        setNewName(""); // clear input
+        setNewNumber(""); // clear input
+      })
+      .catch((error) => {
+        // this is the way to access the error message
+        setErrorMessage(error.response.data.error);
+        setTimeout(() => {
+          setErrorMessage(null);
+        }, 2000);
+      });
   };
 
   //find person

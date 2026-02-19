@@ -8,8 +8,23 @@ blogsRouter.get("/", async (request, response) => {
 });
 
 blogsRouter.post("/", async (request, response) => {
-  const blog = new BlogTest(request.body);
-  const result = await blog.save();
+  const blog = BlogTest(request.body);
+  console.log(blog);
+
+  if (!blog.title || !blog.url) {
+    return response.status(400).json({ error: "content missing" });
+  }
+
+  const likes = blog.likes ? blog.likes : 0;
+
+  const newBlog = new BlogTest({
+    title: blog.title,
+    author: blog.author,
+    url: blog.url,
+    likes,
+  });
+
+  const result = await newBlog.save();
   return response.status(201).json(result);
 });
 

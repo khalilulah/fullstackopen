@@ -55,6 +55,52 @@ test.only("check blog creation", async () => {
   assert.strictEqual(result.length, helper.initialBlog.length + 1);
 });
 
+test.only("check likes creation", async () => {
+  const newBlog = {
+    title: "Sngfeqb",
+    author: "vWAEv",
+    url: "hqevrkdwk",
+  };
+
+  await api
+    .post("/api/blogs")
+    .send(newBlog)
+    .expect(201)
+    .expect("Content-Type", /application\/json/);
+
+  const result = await helper.notesInDb();
+
+  const createdBlog = result[result.length - 1];
+  console.log("this is it :", createdBlog);
+  assert.strictEqual(createdBlog.likes, 0);
+});
+
+test("blog without title is not added", async () => {
+  const newBlog = {
+    author: "Khalil",
+    url: "https://example.com",
+    likes: 10,
+  };
+
+  await api.post("/api/blogs").send(newBlog).expect(400);
+
+  const blogsAtEnd = await helper.notesInDb();
+  assert.strictEqual(blogsAtEnd.length, helper.initialBlog.length);
+});
+
+test("blog without url is not added", async () => {
+  const newBlog = {
+    author: "Khalil",
+    title: "No URL blog",
+    likes: 10,
+  };
+
+  await api.post("/api/blogs").send(newBlog).expect(400);
+
+  const blogsAtEnd = await helper.notesInDb();
+  assert.strictEqual(blogsAtEnd.length, helper.initialBlog.length);
+});
+
 after(async () => {
   await mongoose.connection.close();
 });

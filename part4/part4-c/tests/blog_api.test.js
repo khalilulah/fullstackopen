@@ -4,16 +4,31 @@ const supertest = require("supertest");
 const assert = require("node:assert");
 const app = require("../app");
 const BlogTest = require("../models/person");
+const jwt = require("jsonwebtoken");
 const helper = require("./test_helper");
+const User = require("../models/user");
+const bcrypt = require("bcryptjs");
 
 const api = supertest(app);
 
+let token;
+
 beforeEach(async () => {
+  await User.deleteMany({});
   await BlogTest.deleteMany({});
-  let blogObject = new BlogTest(helper.initialBlog[0]);
-  await blogObject.save();
-  blogObject = new BlogTest(helper.initialBlog[1]);
-  await blogObject.save();
+
+  const passwordHash = await bcrypt.hash("sekret", 10);
+  const user = await new User({
+    username: "mojo",
+    passwordHash,
+  }).save();
+
+  const userForToken = {
+    username: user.username,
+    id: user._id,
+  };
+
+  token = jwt.sign(userForToken, process.env.SECRET);
 });
 
 test.only("get all", async () => {
@@ -42,17 +57,37 @@ test.only("check blog creation", async () => {
     url: "hqevrkdwk",
     likes: 320,
   };
+  const blogsAtStart = await await BlogTest.find({});
 
   await api
     .post("/api/blogs")
+    .set("Authorization", `Bearer ${token}`)
     .send(newBlog)
     .expect(201)
     .expect("Content-Type", /application\/json/);
 
-  const result = await helper.notesInDb();
+  const blogsAtEnd = await helper.notesInDb();
+  assert.strictEqual(blogsAtEnd.length, blogsAtStart.length + 1);
+});
 
-  console.log(`this is it :${result}`);
-  assert.strictEqual(result.length, helper.initialBlog.length + 1);
+test.only("check creation without wrong token", async () => {
+  const newBlog = {
+    title: "Sngfeqb",
+    author: "vWAEv",
+    url: "hqevrkdwk",
+    likes: 320,
+  };
+  const blogsAtStart = await await BlogTest.find({});
+
+  await api
+    .post("/api/blogs")
+    .set("Authorization", "Bearer gxfchchgch")
+    .send(newBlog)
+    .expect(401)
+    .expect("Content-Type", /application\/json/);
+
+  const blogsAtEnd = await helper.notesInDb();
+  assert.strictEqual(blogsAtEnd.length, blogsAtStart.length);
 });
 
 test.only("check likes creation", async () => {
@@ -64,6 +99,7 @@ test.only("check likes creation", async () => {
 
   await api
     .post("/api/blogs")
+    .set("Authorization", `Bearer ${token}`)
     .send(newBlog)
     .expect(201)
     .expect("Content-Type", /application\/json/);
@@ -82,7 +118,11 @@ test("blog without title is not added", async () => {
     likes: 10,
   };
 
-  await api.post("/api/blogs").send(newBlog).expect(400);
+  await api
+    .post("/api/blogs")
+    .set("Authorization", `Bearer ${token}`)
+    .send(newBlog)
+    .expect(400);
 
   const blogsAtEnd = await helper.notesInDb();
   assert.strictEqual(blogsAtEnd.length, helper.initialBlog.length);
@@ -95,7 +135,11 @@ test("blog without url is not added", async () => {
     likes: 10,
   };
 
-  await api.post("/api/blogs").send(newBlog).expect(400);
+  await api
+    .post("/api/blogs")
+    .set("Authorization", `Bearer ${token}`)
+    .send(newBlog)
+    .expect(400);
 
   const blogsAtEnd = await helper.notesInDb();
   assert.strictEqual(blogsAtEnd.length, helper.initialBlog.length);
@@ -105,7 +149,10 @@ test("a blog can be deleted", async () => {
   const blogsAtStart = await helper.notesInDb();
   const blogToDelete = blogsAtStart[0];
 
-  await api.delete(`/api/blogs/${blogToDelete.id}`).expect(204);
+  await api
+    .set("Authorization", `Bearer ${token}`)
+    .delete(`/api/blogs/${blogToDelete.id}`)
+    .expect(204);
 
   const blogsAtEnd = await helper.notesInDb();
 
@@ -123,7 +170,10 @@ test("a blog can be updated", async () => {
     likes: 999,
   };
 
-  await api.put(`/api/blogs/${blogToUpdate.id}`).send(updatedData);
+  await api
+    .set("Authorization", `Bearer ${token}`)
+    .put(`/api/blogs/${blogToUpdate.id}`)
+    .send(updatedData);
 
   const blogsAtEnd = await helper.notesInDb();
   const updatedBlog = blogsAtEnd.find((b) => b.id === blogToUpdate.id);

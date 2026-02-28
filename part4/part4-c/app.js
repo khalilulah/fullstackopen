@@ -2,6 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const config = require("./utils/config");
 const logger = require("./utils/logger");
+const cors = require("cors");
 require("dotenv").config();
 const middleware = require("./utils/middleware");
 
@@ -10,6 +11,7 @@ const usersRouter = require("./controllers/user");
 const loginRouter = require("./controllers/login");
 
 const app = express();
+app.use(cors());
 
 mongoose
   .connect(config.MONGODB_URI, { family: 4 })

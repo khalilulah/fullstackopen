@@ -13,15 +13,15 @@ function CreateBlogForm({
     <div>
       <h1>blog creation</h1>
       <form onSubmit={handleBlogCreation}>
-        <div>
+        <label>
           title: <input value={title} onChange={titleOnChange} />
-        </div>
-        <div>
+        </label>
+        <label>
           author <input type="text" value={author} onChange={authorOnChange} />
-        </div>
-        <div>
+        </label>
+        <label>
           url <input type="text" value={url} onChange={urlOnChange} />
-        </div>
+        </label>
 
         <button type="submit">add</button>
       </form>

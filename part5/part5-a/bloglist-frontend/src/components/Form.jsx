@@ -10,13 +10,13 @@ function Form({
   return (
     <div>
       <form onSubmit={login}>
-        <div>
+        <label>
           username: <input value={username} onChange={usernameOnChange} />
-        </div>
-        <div>
+        </label>
+        <label>
           password{" "}
           <input type="password" value={password} onChange={passwordOnChange} />
-        </div>
+        </label>
 
         <button type="submit">add</button>
       </form>

@@ -10,13 +10,13 @@ function Form({
   return (
     <div>
       <form onSubmit={addPerson}>
-        <div>
+        <label>
           name: <input value={nameValue} onChange={nameOnChange} />
-        </div>
-        <div>
+        </label>
+        <label>
           number{" "}
           <input type="number" value={numValue} onChange={numberOnChange} />
-        </div>
+        </label>
 
         <button type="submit">add</button>
       </form>

@@ -44,6 +44,7 @@ const App = () => {
       const user = await blogService.login({ username, password });
 
       window.localStorage.setItem("loggedNoteappUser", JSON.stringify(user));
+
       blogService.setToken(user.token);
       setUser(user);
       setUsername("");
